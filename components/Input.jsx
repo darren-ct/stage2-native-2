@@ -1,6 +1,9 @@
 import { TextInput, View,Text,StyleSheet } from "react-native"
 
 const Input = ({name,value,err,onChange}) => {
+
+  const isPasswordInput = name === "Password" || name === "Reenter" ? true : false;
+  const isError = err !== "" ? true : false;
   const handleChange = (content) => {
          onChange(
             prev => {
@@ -18,7 +21,7 @@ const Input = ({name,value,err,onChange}) => {
   return (
      <View style={styles.inputControl}>
         <Text style={styles.inputLabel}>{name}</Text>
-        <TextInput style={styles.input} value={value} name={name} onChangeText={handleChange}/>
+        <TextInput style={isError ? styles.alertInput : styles.input} value={value} name={name} onChangeText={handleChange} secureTextEntry={isPasswordInput}/>
         <Text style={styles.inputError}>{err}</Text>
      </View>
   )
@@ -29,7 +32,7 @@ export default Input
 const styles = StyleSheet.create({
      inputControl : {
         width: 300,
-        marginBottom: 24
+        marginBottom: 8
      },
 
      inputLabel : {
@@ -43,8 +46,15 @@ const styles = StyleSheet.create({
        padding: 8,
        borderRadius: 4
      },
-
      inputError : {
         color: "red"
-     }
+     },
+     alertInput : {
+      width: "100%",
+      backgroundColor: "rgba(179,172,237,.35)",
+      padding: 8,
+      borderRadius: 4,
+      borderWidth: 1,
+      borderColor: "red"
+     },
 })

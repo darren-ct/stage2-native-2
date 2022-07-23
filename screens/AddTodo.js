@@ -1,11 +1,12 @@
 import { View,StyleSheet,Pressable,Text,TextInput } from "react-native";
-import { useState } from "react";
+import { useState,useContext } from "react";
 import {API} from "../api"
 import Input from "../components/Input"
-import { v4 as uuidv4 } from 'uuid';
 
+import { AppContext } from "../App";
 
-const AddProject = ({navigation}) => {
+const AddTodo = ({navigation}) => {
+  const {token,userId} = useContext(AppContext);
   const[form,setForm] = useState({
        Title : {
             value : "",
@@ -18,7 +19,7 @@ const AddProject = ({navigation}) => {
        }
   });
 
-  const onSubmit = () => {
+  const onSubmit = async() => {
      setForm(prev => {
           const newObj = {...prev};
     
@@ -34,15 +35,18 @@ const AddProject = ({navigation}) => {
        };
 
        if(form.Description.value === ""){
-          return setForm(prev => {return {...prev,Title:{value:prev.Description.value,errMsg:"Description can't be empty"}}})
+          return setForm(prev => {return {...prev,Description:{value:prev.Description.value,errMsg:"Description can't be empty"}}})
        };
 
        try {
-             await API.post("/user",{
-                id : uuidv4(),
+             await API.post("/mytodo",{
                 title : form.Title.value,
-                desc : form.Description.value
-             });
+                desc : form.Description.value,
+                isDone : "false",
+                author_id : userId,
+             },{
+               headers: {'Authorization':`Bearer ${token}`}
+               });
 
              navigation.navigate("Home")
 
@@ -54,7 +58,7 @@ const AddProject = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-         <Text style={styles.title}>Add New Project</Text>
+         <Text style={styles.title}>Add New Todo</Text>
          <Input name="Title" value={form.Title.value} err={form.Title.errMsg} onChange={setForm}/>
          <Input name="Description" value={form.Description.value} err={form.Title.errMsg} onChange={setForm}/>
          <Pressable onPress={onSubmit} style={styles.submitBtn}><Text style={styles.submitText}>Add Todo</Text></Pressable>
@@ -62,7 +66,7 @@ const AddProject = ({navigation}) => {
   )
 }
 
-export default AddProject;
+export default AddTodo;
 
 
 const styles = StyleSheet.create({

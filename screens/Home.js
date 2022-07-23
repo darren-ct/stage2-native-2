@@ -1,28 +1,53 @@
 import {View,StyleSheet,Text,FlatList,Modal,TextInput, Pressable} from "react-native"
-import { useState,useEffect } from "react"
+import { useState,useLayoutEffect,useEffect,useContext } from "react"
+import { useIsFocused } from "@react-navigation/native";
+import { AppContext } from "../App";
 import Todo from "../components/Todo"
 import {API} from "../api";
+// import { KontenbaseClient } from "@kontenbase/sdk";
+
 
 const Home = ({navigation}) => {
+  // const kontenbase = new KontenbaseClient({ apiKey: '1cd2efe7-a7ea-443c-9362-9e225e0f12e9' });
+  const isFocused = useIsFocused();
+  const {token,userId} = useContext(AppContext);
 
   // State
   const[todos,setTodos] = useState([])
+  const[search,setSearch] = useState("")
+
   const[id,setId] = useState(null)
   const[modalVisible,setIsModalVisible] = useState(false)
+
+ 
+
+  useLayoutEffect(()=>{
+    navigation.setOptions({
+      headerLeft : () => <></>
+   })
+ },[navigation])
 
   // useEffect
   useEffect(()=>{
     getTodos();
-  },[])
+  },[search,isFocused])
 
   // Function
   const getTodos = async() =>{
  
         try {
 
-          const res = await API.get("/todos");
+          const res = await API.get("/mytodo",{
+            headers: {'Authorization':`Bearer ${token}`}
+            });
+          
           const data = res.data;
-          setTodos(data)
+          const newData = data.filter(item => {
+            return item.title.toLowerCase().trim().startsWith(search.toLowerCase()) === true
+          });
+          const filteredData = newData.filter(item => item.author_id === userId)
+
+          setTodos(filteredData)
           
         } catch(err) {
 
@@ -33,7 +58,9 @@ const Home = ({navigation}) => {
     try {
 
       console.log(id)
-      await API.delete(`/todo/${id}`);
+      await API.delete(`/mytodo/${id}`,{
+        headers: {'Authorization':`Bearer ${token}`}
+        });
       getTodos();
     } catch(err) {
 
@@ -63,8 +90,8 @@ const Home = ({navigation}) => {
          <Text style={styles.title}>My Todo</Text>
 
          <View style={{flexDirection:"row",alignItems:"flex-start"}}>
-                 <TextInput style={styles.input}/>
-                 <Pressable style={{backgroundColor:"#6C5CE7",paddingHorizontal:12,paddingVertical:8,borderRadius:4}} onPress={()=>{navigation.navigate("Add Project")}}>
+                 <TextInput style={styles.input} value={search} onChangeText={(content)=>{setSearch(content)}}/>
+                 <Pressable style={{backgroundColor:"#6C5CE7",paddingHorizontal:12,paddingVertical:8,borderRadius:4}} onPress={()=>{navigation.navigate("Add Todo")}}>
                      <Text style={{fontSize:24,color:"white"}}>+</Text>
                  </Pressable>
          </View>
@@ -73,7 +100,7 @@ const Home = ({navigation}) => {
          {
           todos.length === 0 ? 
              <Text style={{color:"black"}}>No todo yet..</Text>    :   <FlatList data={todos} style={{height:380}}
-             keyExtractor={(item)=> item.id} 
+             keyExtractor={(item)=> item._id} 
              renderItem={(itemData)=> <Todo item={itemData.item} navigation={navigation} showModal={setIsModalVisible} setId={setId}/>}/>
          }
          
