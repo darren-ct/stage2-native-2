@@ -145,6 +145,7 @@ const styles = StyleSheet.create({
      },
 
      modalTitle : {
+         color: "white",
          fontSize: 24,
          fontWeight:"bold",
          textAlign: "center",
